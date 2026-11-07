@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="SignalScope Studio: an interactive communications engineering modulation, spectrum, constellation and bit-error learning lab.">
+  <title>SignalScope Studio — Digital Modulation Lab</title>
+  <style>
+    :root { --bg:#080e1c; --panel:#111b30; --panel2:#151f35; --line:#263650; --ink:#f1f6ff; --muted:#97a9c4; --cyan:#56e3ef; --purple:#a69bff; --lime:#b8ee9a; --red:#ffa19d; --amber:#ffd68c; --nav:#0c1427; --shadow:0 18px 48px rgba(0,0,0,.20) }
+    * { box-sizing:border-box } html { scroll-behavior:smooth }
+    body { margin:0; background:radial-gradient(ellipse 60% 36% at 84% -6%,rgba(68,86,170,.18),transparent),var(--bg); color:var(--ink); font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:14px; line-height:1.48 }
+    button,input { font:inherit }
+    button:focus-visible, input:focus-visible { outline:2px solid var(--cyan); outline-offset:3px }
+    button { cursor:pointer }
+    .layout { width:min(1530px,calc(100% - 42px)); margin:auto }
+    header { background:rgba(9,17,33,.88); border-bottom:1px solid #22314a; backdrop-filter:blur(16px); position:sticky; top:0; z-index:10 }
+    .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; gap:18px }
+    .logo { display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit }
+    .logo-mark { width:40px;height:40px; border-radius:12px; background:linear-gradient(135deg,#50dbe8,#6d6ff0); display:grid;place-items:center; box-shadow:0 0 25px #4fd9ec34 }
+    .logo-mark svg { width:29px;height:29px }
+    .logo-name { font-size:18px;font-weight:800; letter-spacing:-.6px;white-space:nowrap }
+    .logo-name span { color:var(--cyan) }
+    .toplinks { display:flex; align-items:center;gap:20px; color:var(--muted);font-size:12px }
+    .toplinks a { text-decoration:none;color:inherit }.toplinks a:hover {color:var(--ink)}
+    .tag { padding:6px 9px; border:1px solid #275c66; background:#11333b; border-radius:30px; color:#9de7ef; font-size:11px;letter-spacing:.3px;font-weight:700;white-space:nowrap }
+    .hero { display:flex; justify-content:space-between;align-items:flex-end;gap:30px;padding:37px 0 29px }
+    .eyebrow { text-transform:uppercase; letter-spacing:2.1px;color:var(--cyan);font-size:11px;font-weight:800; margin-bottom:10px }
+    h1 {font-size:clamp(29px,3.7vw,49px);font-weight:800;letter-spacing:-1.8px;line-height:1.12; margin:0 0 14px }
+    h1 .gradient {background:linear-gradient(90deg,#53e5e9,#b6a7ff);background-clip:text;color:transparent }
+    .hero p {max-width:700px;color:#a8b7d0;margin:0;font-size:15px }
+    .hero-right {display:flex;align-items:center;gap:9px;flex-shrink:0; padding-bottom:5px }
+    .button { border-radius:10px; border:1px solid #3b506b; background:#1c2b45;color:var(--ink);padding:10px 14px;display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;transition:.18s;white-space:nowrap }
+    .button:hover {background:#263a59;border-color:#6e88a8;transform:translateY(-1px)}
+    .button.primary {background:linear-gradient(135deg,#3ad8dc,#6174e1);border:0;color:#081322;box-shadow:0 5px 24px #3ad8dc35 }
+    .button:disabled {opacity:.6;cursor:default }
+    .workspace {display:grid;grid-template-columns:minmax(276px,305px) minmax(0,1fr);gap:18px;align-items:start }
+    .card { background:linear-gradient(135deg,#121e32 0%,#101a2b 100%);border:1px solid #263751;border-radius:16px;box-shadow:var(--shadow) }
+    .panel-pad {padding:22px}
+    .section-header {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px }
+    .section-header h2 {font-size:15px;letter-spacing:-.3px;margin:0;font-weight:750}
+    .hint-tag {color:#7de1e6;background:#0e3440;padding:3px 9px;border-radius:6px;font-size:10px;letter-spacing:.4px;font-weight:800}
+    .sidebar {display:grid;gap:17px;position:sticky;top:90px}
+    .control-label {font-size:11px;color:#c0cce0;font-weight:750;letter-spacing:.1px;margin-bottom:8px;display:block }
+    .mod-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:21px }
+    .mod-btn {border:1px solid #2a3c57;color:#aabbd4;background:#17243a;border-radius:8px;padding:10px 2px; font-size:12px;font-weight:800 }
+    .mod-btn.active {color:#101923;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 0 3px #4ee1ed22 }
+    .mod-btn small {display:block; font-size:9px;font-weight:500;opacity:.8 }
+    .control {margin:18px 0 0 }
+    .control .between {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px }
+    .readout {font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#74e5ed;font-weight:800}
+    input[type=range] {width:100%;appearance:none;height:5px;border-radius:99px;background:#2a3c56;accent-color:var(--cyan);cursor:pointer;margin:11px 0 4px}
+    input[type=range]::-webkit-slider-thumb {appearance:none;width:16px;height:16px;border:3px solid #ebfbfd;background:#59dbe4;border-radius:50%;box-shadow:0 1px 12px #39dbec63}
+    .range-ends {display:flex;justify-content:space-between;font-size:10px;color:#8498b3}
+    .rule {height:1px;background:#293b55;margin:21px 0}
+    .bits-input {width:100%;border:1px solid #37516e;background:#0d172a;color:#e2ebfe;border-radius:8px;padding:12px;font-family:ui-monospace,Consolas,monospace; font-size:12px;letter-spacing:1px}
+    .tiny-text {margin:7px 0 0;color:#90a3bc;font-size:11px}
+    .split-actions {display:flex;gap:7px;margin-top:10px}
+    .split-actions .button{flex:1;justify-content:center;padding:9px 6px}
+    .toggle-row {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;font-size:12px;color:#b9c6db;cursor:pointer}
+    .toggle-row input {accent-color:var(--cyan);width:15px;height:15px}
+    .preset-list {display:grid;gap:9px;margin-top:12px}
+    .preset {background:#162741;border:1px solid #293d59;color:#cddaf0;text-align:left;padding:12px;border-radius:10px;line-height:1.3 }
+    .preset:hover {background:#203753;border-color:#426483}
+    .preset strong {display:block;font-size:12px;margin-bottom:4px}.preset span{font-size:11px;color:#9caec8}
+    .main {min-width:0; display:grid;gap:16px}
+    .kpi {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .metric {border:1px solid #293954;background:linear-gradient(130deg,#172640,#111e33);padding:14px;border-radius:13px;min-width:0}
+    .metric .m-label {font-size:10px;text-transform:uppercase;letter-spacing:.75px;color:#96a8c5;font-weight:700;white-space:nowrap}
+    .metric .m-num {font-size:clamp(17px,2.1vw,26px);font-weight:800;letter-spacing:-.75px;margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .metric .m-sub {font-size:10px;color:#899db9;margin-top:2px;min-height:15px;white-space:nowrap}
+    .metric.highlight {border-color:#2a6c75;background:linear-gradient(135deg,#163b4c,#102334)}
+    .charts {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+    .chart-card {padding:17px 17px 12px; min-width:0;overflow:hidden}
+    .chart-top {display:flex;align-items:start;justify-content:space-between;gap:9px;margin-bottom:9px}
+    .chart-top h3{margin:0;font-size:14px;font-weight:750;letter-spacing:-.2px}
+    .chart-top p{margin:2px 0 0;font-size:11px;color:#8fa2bc}
+    .chart-marker{font-size:10px;color:#a9b9d0;border:1px solid #32435d;background:#18253b;padding:4px 7px;border-radius:5px;white-space:nowrap}
+    canvas {width:100%;display:block; height:255px;touch-action:pan-y}
+    .chart-foot{border-top:1px solid #243650; margin-top:7px;padding-top:10px;color:#9aaeca;font-size:11px;min-height:31px}
+    .details {display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .info-panel {padding:22px}
+    .info-panel h2{font-size:15px;margin:0 0 12px;font-weight:750}
+    .info-panel p {color:#aebdd2;font-size:12px;margin:7px 0}
+    .formula {border:1px solid #31415e;background:#0d192d;border-radius:9px;padding:13px 15px;color:#b1eeff;font-family:ui-monospace,Consolas,monospace;letter-spacing:-.25px;font-size:12px;overflow:auto;margin:11px 0}
+    .formula b{color:#eaf5ff}
+    .bits-display {display:flex;flex-wrap:wrap;gap:3px 5px;margin:11px 0;align-items:center}
+    .bit-cell {display:inline-flex;align-items:center;justify-content:center;width:21px;height:24px;background:#1d2c45;color:#c4d8f3;border:1px solid #344966;border-radius:4px;font-family:ui-monospace,monospace;font-size:12px;font-weight:800}
+    .bit-cell.err{background:#602c35;border-color:#f18d8d;color:#ffd5d0}.bit-cell.pad{opacity:.35}
+    .stats-row {display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #273951;padding-top:10px;margin-top:11px;color:#aebdd4;font-size:11px}
+    .stats-row strong{color:#e9f3ff;font-variant-numeric:tabular-nums}
+    .notes {background:#102c35;border:1px solid #245567;border-radius:10px;padding:11px 12px;color:#bee9e9;font-size:11px;margin-top:14px}
+    .experiment {display:flex;align-items:start;gap:12px;background:#171f35;border:1px solid #34445d;padding:18px;border-radius:14px}
+    .experiment .spark {width:39px;height:39px;flex-shrink:0;border-radius:11px;background:#3d315a;color:#e8bcff;display:grid;place-items:center;font-size:21px}
+    .experiment h3 {margin:0 0 4px;font-size:13px}.experiment p{margin:0;font-size:12px;color:#acbed5}
+    .footer {margin:28px 0 40px;color:#7c91aa;text-align:center;font-size:11px}
+    .footer a{color:#9fb9d7}
+    .status {padding:6px 11px;border:1px solid #38516e;color:#aecfe1;background:#122137;border-radius:8px;font-size:11px;font-weight:700}
+
+    /* First-visit explainer: intentionally placed before controls and plots. */
+    .first-visit { margin:0 0 18px; overflow:hidden; border-color:#31647b; background:linear-gradient(118deg,#102d3b,#121d32 60%,#171d38) }
+    .first-visit summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:19px 22px; font-weight:800; font-size:16px }
+    .first-visit summary::-webkit-details-marker { display:none }
+    .first-visit summary:focus-visible {outline:2px solid var(--cyan);outline-offset:-3px}
+    .first-visit .guide-kicker {display:block; font-size:10px; color:var(--cyan); text-transform:uppercase; font-weight:800; letter-spacing:1.4px; margin-bottom:4px}
+    .first-visit .guide-toggle {font-size:11px; font-weight:750; color:#b0deed; padding:6px 10px; border:1px solid #396577; border-radius:7px; flex-shrink:0}
+    .first-visit .guide-toggle::after {content:'▼'; font-size:9px; padding-left:7px}
+    .first-visit[open] .guide-toggle::after {content:'▲'}
+    .guide-content {border-top:1px solid #284359; padding:0 22px 19px}
+    .guide-lead {color:#d9eaf7; font-size:14px; margin:14px 0 18px; max-width:1200px}
+    .guide-columns {display:grid;grid-template-columns:1fr 1fr;gap:17px}
+    .guide-block {border:1px solid #2d4159;border-radius:12px;background:#0e192b;padding:16px}
+    .guide-block h3 {font-size:13px;margin:0 0 10px;color:#a3f1f4}
+    .guide-block ol,.guide-block ul {padding-left:19px;margin:0; color:#d0deef; font-size:12px;line-height:1.65}
+    .guide-block li + li {margin-top:6px}
+    .graph-key {display:grid; grid-template-columns:1fr 1fr; gap:9px}
+    .graph-key div {padding:9px; background:#19283e; border-radius:8px; font-size:11px; color:#b9cee4}
+    .graph-key b {display:block;font-size:12px;color:#edf6ff;margin-bottom:2px}
+    .glossary {margin-top:12px; color:#bdd0e4; font-size:11px; line-height:1.65}
+    .glossary b {color:#f4f7ff}
+    @media (max-width:850px) {.guide-columns {grid-template-columns:1fr} .graph-key {grid-template-columns:1fr 1fr}}
+    @media (max-width:550px) {.first-visit summary {padding:16px;font-size:14px}.guide-content {padding:0 16px 16px}.graph-key {grid-template-columns:1fr}.first-visit .guide-toggle {font-size:10px}}
+    @media (max-width:1180px) {.workspace{grid-template-columns:270px minmax(0,1fr)} .kpi{grid-template-columns:repeat(3,1fr)} .charts{grid-template-columns:1fr} canvas{height:277px} .details{grid-template-columns:1fr}}
+    @media (max-width:750px) {.layout{width:min(100% - 24px,600px)}.topbar{height:64px}.toplinks a{display:none}.toplinks{gap:7px}.hero{display:block;padding:26px 0 18px}.hero-right{margin-top:19px;flex-wrap:wrap}.workspace{grid-template-columns:1fr}.sidebar{position:static}.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.metric .m-num{font-size:22px}canvas{height:240px}.details{grid-template-columns:1fr}}
+    @media (prefers-reduced-motion:reduce) {*{scroll-behavior:auto;transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="layout topbar">
+    <a href="#top" class="logo" aria-label="SignalScope Studio Home">
+      <span class="logo-mark"><svg viewBox="0 0 32 32" fill="none"><path d="M2 17H7L10 7L14 25L18 11L21 19L24 15H30" stroke="#08203b" stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round"/></svg></span>
+      <span class="logo-name">SignalScope<span> Studio</span></span>
+    </a>
+    <div class="toplinks"><a href="#visualizations">Visualizations</a><a href="#theory">Theory & receiver</a><span class="tag">WCM555 • Interactive Lab</span></div>
+  </div>
+</header>
+<div class="layout" id="top">
+  <section class="hero">
+    <div><div class="eyebrow">Explore communications engineering</div><h1>See signals. <span class="gradient">Understand modulation.</span></h1><p>Change modulation formats, symbol rates and channel noise. Watch the RF waveform, FFT spectrum, constellation and bit-error performance respond in real time.</p></div>
+    <div class="hero-right"><button class="button" id="playBtn">⏸ Pause sweep</button><button class="button primary" id="exportBtn">↧ Export plots</button></div>
+  </section>
+  <details class="first-visit card" id="startHere" open>
+    <summary><span><span class="guide-kicker">Start here · No experience needed</span>What is digital modulation, and how do I use this lab?</span><span class="guide-toggle">Beginner guide</span></summary>
+    <div class="guide-content">
+      <p class="guide-lead"><strong>Digital modulation</strong> is how we send binary data (0s and 1s) over a radio signal. A transmitter changes a rapidly oscillating <strong>carrier wave</strong>—its <strong>amplitude</strong> (height), <strong>frequency</strong> (cycles per second), or <strong>phase</strong> (position in its cycle)—to represent information. The receiver must recover the bits, even when noise distorts the signal.</p>
+      <div class="guide-columns">
+        <div class="guide-block"><h3>Your first 60-second experiment</h3>
+          <ol>
+            <li>Choose <strong>ASK</strong> under Modulation Scheme. In the RF waveform, notice that a bit <strong>1</strong> turns the carrier on and <strong>0</strong> turns it off.</li>
+            <li>Select <strong>BPSK</strong>. The labels above the waveform show <strong>0°</strong> and <strong>180°</strong> phase states (rather than raw bit values). Then raise <strong>Bit Rate</strong>: the main-lobe span grows because symbols are sent faster.</li>
+            <li>Try <strong>Guided Experiment 01: Add channel noise</strong>. Raise <strong>Eᵦ/N₀</strong> from −2 to 12 dB: the received constellation points cluster more tightly and the bit-error rate (BER) decreases.</li>
+          </ol>
+        </div>
+        <div class="guide-block"><h3>How to read the four graphs</h3>
+          <div class="graph-key">
+            <div><b>01 · RF waveform</b>How the transmitted signal changes over time. ASK uses bits; FSK labels each frequency as fc0 or fc1; BPSK shows 0° or 180° phase.</div>
+            <div><b>02 · Frequency spectrum</b>Where the signal's power lies across frequency; a wider plot means more frequency space is occupied.</div>
+            <div><b>03 · Constellation / receiver</b>Each dot represents a received symbol. Tight clusters are easier to decode. For FSK, these are receiver correlation outputs instead of standard I/Q points.</div>
+            <div><b>04 · BER curve</b>The chance of reading a bit incorrectly. Lower is better; moving right to higher Eᵦ/N₀ generally lowers BER.</div>
+          </div>
+          <div class="glossary"><b>Bit rate (kb/s)</b> = information bits each second. <b>Symbol rate (kBd)</b> = signal states sent each second; one symbol can carry multiple bits. <b>FFT</b> = calculation used to display the spectrum. <b>Eᵦ/N₀ (dB)</b> = signal energy per bit compared with noise; larger values mean a cleaner link. <b>BER</b> = incorrect bits divided by total bits.</div>
+        </div>
+      </div>
+    </div>
+  </details>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Experiment controls">
+      <section class="card panel-pad">
+        <div class="section-header"><h2>Experiment controls</h2><span class="hint-tag">LIVE</span></div>
+        <label class="control-label">MODULATION SCHEME</label>
+        <div class="mod-grid" id="modButtons" role="group" aria-label="Modulation selection">
+          <button class="mod-btn" data-mode="ASK" title="Amplitude Shift Keying (on-off keying)" aria-label="Amplitude Shift Keying (on-off keying)">ASK <small>1 bit/sym</small></button><button class="mod-btn" data-mode="FSK" title="Frequency Shift Keying" aria-label="Frequency Shift Keying">FSK <small>1 bit/sym</small></button><button class="mod-btn active" data-mode="BPSK" title="Binary Phase Shift Keying" aria-label="Binary Phase Shift Keying">BPSK <small>1 bit/sym</small></button><button class="mod-btn" data-mode="QPSK" title="Quadrature Phase Shift Keying" aria-label="Quadrature Phase Shift Keying">QPSK <small>2 bit/sym</small></button><button class="mod-btn" data-mode="16QAM" title="16-state Quadrature Amplitude Modulation" aria-label="16-state Quadrature Amplitude Modulation">16-QAM <small>4 bit/sym</small></button>
+        </div>
+        <div class="control"><div class="between"><label class="control-label" for="rate">BIT RATE</label><span class="readout" id="rateVal">100 kb/s</span></div><input type="range" id="rate" min="20" max="220" step="10" value="100"><div class="range-ends"><span>20 kb/s</span><span>220 kb/s</span></div></div>
+        <div class="control"><div class="between"><label class="control-label" for="carrier">CARRIER CYCLES / SYMBOL</label><span class="readout" id="carrierVal">6 cycles</span></div><input type="range" id="carrier" min="4" max="13" step="1" value="6"><div class="range-ends"><span>4 cycles</span><span>13 cycles</span></div></div>
+        <div class="control"><div class="between"><label class="control-label" for="snr">Eᵦ / N₀ (NOISE LEVEL)</label><span class="readout" id="snrVal">8 dB</span></div><input type="range" id="snr" min="-4" max="22" step="1" value="8"><div class="range-ends"><span>−4 dB (noisy)</span><span>22 dB (clean)</span></div></div>
+        <div class="rule"></div>
+        <label class="control-label" for="bitInput">TRANSMITTED BITS (0 AND 1)</label>
+        <input class="bits-input" id="bitInput" value="10110100111001011000101100110110" maxlength="96" spellcheck="false" inputmode="numeric" aria-label="Transmitted binary bitstream">
+        <p class="tiny-text" id="bitNotice">32 bits • automatically pads incomplete symbols.</p>
+        <div class="split-actions"><button class="button" id="randomBtn">↻ New bits</button><button class="button" id="noiseBtn">✦ Resample noise</button></div>
+        <div class="rule"></div>
+        <label class="toggle-row" for="showNoise"><span>Show noisy RF overlay</span><input type="checkbox" id="showNoise" checked></label>
+        <label class="toggle-row" for="showIdeal"><span>Show ideal reference points</span><input type="checkbox" id="showIdeal" checked></label>
+        <label class="toggle-row" for="showNull"><span>Show spectral null guides</span><input type="checkbox" id="showNull" checked></label>
+      </section>
+      <section class="card panel-pad"><div class="section-header" style="margin-bottom:8px"><h2>Guided experiments</h2><span class="hint-tag">TRY THIS</span></div><div class="preset-list">
+        <button class="preset" data-preset="noise"><strong>01 · Add channel noise</strong><span>Watch the cloud spread and bit errors rise.</span></button>
+        <button class="preset" data-preset="rate"><strong>02 · Double the bit rate</strong><span>Measure how the spectrum expands.</span></button>
+        <button class="preset" data-preset="qam"><strong>03 · Increase bits per symbol</strong><span>Compare QPSK and 16-QAM reliability.</span></button>
+      </div></section>
+    </aside>
+    <main class="main">
+      <section class="kpi" aria-label="Live signal measurements">
+        <div class="metric"><div class="m-label">Modulation</div><div class="m-num" id="mName">BPSK</div><div class="m-sub" id="mScheme">Binary phase shift</div></div>
+        <div class="metric"><div class="m-label">Symbol rate</div><div class="m-num" id="mBaud">100 kBd</div><div class="m-sub" id="mSymbol">10 µs/symbol</div></div>
+        <div class="metric"><div class="m-label">Carrier</div><div class="m-num" id="mFc">600 kHz</div><div class="m-sub" id="mCarrierDetail">6 cycles/symbol</div></div>
+        <div class="metric"><div class="m-label">Main-lobe span</div><div class="m-num" id="mBW">—</div><div class="m-sub">Ideal pulse estimate</div></div>
+        <div class="metric highlight"><div class="m-label">Measured BER</div><div class="m-num" id="mBer">—</div><div class="m-sub" id="mBerSub">Coherent AWGN trials</div></div>
+      </section>
+      <section class="charts" id="visualizations">
+        <article class="card chart-card"><div class="chart-top"><div><h3>01 / RF waveform</h3><p id="waveSubtitle">Time-domain carrier · symbol boundaries</p></div><span class="chart-marker" id="waveBadge">V (normalized)</span></div><canvas id="waveCanvas" role="img" aria-label="Modulated radiofrequency waveform plotted against time"></canvas><div class="chart-foot" id="waveFoot">Changes in phase, amplitude or frequency encode binary information.</div></article>
+        <article class="card chart-card"><div class="chart-top"><div><h3>02 / Frequency spectrum</h3><p>FFT power · relative dB versus frequency</p></div><span class="chart-marker">FFT • Hann</span></div><canvas id="spectrumCanvas" role="img" aria-label="Frequency domain power spectral plot"></canvas><div class="chart-foot" id="specFoot">Main-lobe width responds to symbol rate.</div></article>
+        <article class="card chart-card"><div class="chart-top"><div><h3 id="constTitle">03 / Constellation & receiver</h3><p id="constSub">Ideal symbol locations and noisy received samples</p></div><span class="chart-marker" id="constBadge">I/Q</span></div><canvas id="constCanvas" role="img" aria-label="Ideal and noisy received constellation samples"></canvas><div class="chart-foot" id="constFoot">More noise increases constellation overlap.</div></article>
+        <article class="card chart-card"><div class="chart-top"><div><h3>04 / Bit error probability</h3><p>Analytic AWGN theory · logarithmic BER scale</p></div><span class="chart-marker">BER vs Eᵦ/N₀</span></div><canvas id="berCanvas" role="img" aria-label="Theoretical bit error probability compared across modulation schemes"></canvas><div class="chart-foot" id="berFoot">Dots show selected scheme at current Eᵦ/N₀; simulation uses finite samples.</div></article>
+      </section>
+      <section class="details" id="theory">
+        <article class="card info-panel"><h2>What is happening?</h2><p id="modeDescription">BPSK transmits 1 bit per symbol by choosing one of two carrier phases.</p><div class="formula" id="modeFormula">s(t) = ±cos(2πfct)</div><div class="stats-row"><span>Information bits per symbol</span><strong id="detailK">1</strong></div><div class="stats-row"><span>Symbol duration</span><strong id="detailTs">10.00 μs</strong></div><div class="stats-row"><span>Approx. rectangular-pulse null span</span><strong id="detailNull">2 × Rs</strong></div><div class="notes" id="modeNote">Assumes ideal rectangular symbol pulses and a coherent receiver. No pulse shaping or channel fading.</div></article>
+        <article class="card info-panel"><h2>Try decoding the message</h2><p>These receiver decisions use the same ideal symbol mapping as the plotted constellation, with independent additive white Gaussian noise (AWGN).</p><p style="font-weight:700;color:#e6f4ff;margin-top:14px">Transmitted bits</p><div class="bits-display" id="txBits"></div><p style="font-weight:700;color:#e6f4ff">Decoded bits <span style="color:#ffb0a8;font-weight:500">(red = incorrect)</span></p><div class="bits-display" id="rxBits"></div><div class="stats-row"><span>Errors in the displayed message</span><strong id="messageErrors">0 / 32 bits</strong></div><div class="stats-row"><span>Analytical BER for current mode</span><strong id="theoryBer">—</strong></div><div class="notes"><strong>Measurement tip:</strong> At high Eᵦ/N₀, a finite random simulation may record zero errors even though the theoretical BER is not zero.</div></article>
+      </section>
+      <div class="experiment"><div class="spark">✦</div><div><h3 id="experimentTitle">Explore like an engineer</h3><p id="experimentText">Use the guided experiments on the left to test an idea. For a fair reliability comparison, keep Eᵦ/N₀ fixed while changing the modulation format.</p></div></div>
+      <div class="footer">SignalScope Studio · WCM555 · Works offline in any modern browser · All plots and calculations run locally · No data is transmitted. <br>Educational model: ideal coherent matched-filter AWGN detection; the RF noise overlay is illustrative and not the actual matched-filter noise realization.</div>
+    </main>
+  </div>
+</div>
+<script>
+"use strict";
+(() => {
+const $=id=>document.getElementById(id);
+const configs={
+ ASK:{k:1,label:'Amplitude shift',short:'OOK / ASK',description:'On–off keying (OOK), a form of ASK, represents a 1 using a carrier and a 0 using no carrier. The amplitude is the information.',formula:'s(t) = Aᵦ cos(2πfct),   A₀ = 0, A₁ = √2',note:'For consistent energy accounting, the ideal 1 amplitude is √2 and bits are assumed equally probable. This is coherent OOK, not arbitrary M-ASK.'},
+ FSK:{k:1,label:'Frequency shift',short:'Coherent BFSK',description:'Binary FSK encodes each bit with a different carrier frequency. The waveform uses continuous phase across symbol boundaries.',formula:'f₀ = fc − Rs/2;   f₁ = fc + Rs/2;   Δf = Rs',note:'The receiver plot uses two orthogonal correlator outputs (NOT an I/Q constellation). The modeled detector is coherent orthogonal BFSK.'},
+ BPSK:{k:1,label:'Binary phase shift',short:'BPSK',description:'BPSK sends a bit by selecting one of two carrier phases: 0° or 180°. The amplitude stays constant while the carrier sign changes.',formula:'s(t) = ±cos(2πfct); 1 bit / symbol',note:'Bit mapping: 0 → +I, 1 → −I. Receiver assumes ideal carrier-phase synchronization.'},
+ QPSK:{k:2,label:'Quadrature phase',short:'QPSK',description:'QPSK carries 2 bits per symbol using four phases. Its Gray-labeled constellation has one bit difference between adjacent points.',formula:'s(t) = I cos(2πfct) − Q sin(2πfct)',note:'QPSK points are (±1/√2, ±1/√2). Relative to BPSK at equal Eb/N0, ideal coherent Gray-QPSK has the same theoretical BER.'},
+ '16QAM':{k:4,label:'Quadrature amplitude',short:'Gray 16-QAM',description:'16-QAM combines changes in amplitude and phase to carry 4 bits per symbol. With the same bit rate, its symbol rate is one quarter of BPSK.',formula:'I,Q ∈ {−3,−1,+1,+3}/√10; 4 bits / symbol',note:'Square, Gray-coded 16-QAM with ideal coherent minimum-distance decisions. BER theory uses the standard nearest-neighbor approximation.'}
+};
+const state={mode:'BPSK',bitRate:100,cycles:6,ebn0:8,seed:70126,playing:true,showNoise:true,showIdeal:true,showNull:true,bits:'10110100111001011000101100110110',challenge:''};
+const palette={grid:'#263850',ink:'#98adc8',cyan:'#54e5eb',violet:'#ac9fff',green:'#abedaa',orange:'#ffcf85',red:'#ff9b96',bg:'#0d1729',gold:'#ffca6f'};
+function rng(seed){let a=seed>>>0;return ()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
+function gauss(random){let u=1-random(),v=1-random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function round(v,n=2){return v.toFixed(n)}
+function bp(mode){return configs[mode].k}
+function fmtBER(p){if(p===0)return '0'; if(p<.0001)return p.toExponential(2);return p.toFixed(p<.01?5:4)}
+function erfc(x){ // Numerical Recipes approximation; |error| < 1.2e-7
+ const z=Math.abs(x),t=1/(1+.5*z);
+ const a=t*Math.exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+t*(1.48851587+t*(-.82215223+t*.17087277)))))))));
+ return x>=0?a:2-a;
+}
+function theor(mode,dB){const g=Math.pow(10,dB/10);if(mode==='BPSK'||mode==='QPSK')return .5*erfc(Math.sqrt(g));if(mode==='ASK'||mode==='FSK')return .5*erfc(Math.sqrt(g/2));return .375*erfc(Math.sqrt(.4*g));}
+function symbolFrom(bits,mode){
+ const num=bits.map(Number), k=bp(mode);
+ if(mode==='ASK')return {i:num[0]?Math.SQRT2:0,q:0,bits:num};
+ if(mode==='BPSK')return {i:num[0]?-1:1,q:0,bits:num};
+ if(mode==='FSK')return {i:num[0]?0:1,q:num[0]?1:0,bits:num};
+ if(mode==='QPSK')return {i:(num[0]?-1:1)*Math.SQRT1_2,q:(num[1]?-1:1)*Math.SQRT1_2,bits:num};
+ const axes={'00':-3,'01':-1,'11':1,'10':3};return {i:axes[bits.slice(0,2).join('')]/Math.sqrt(10),q:axes[bits.slice(2,4).join('')]/Math.sqrt(10),bits:num};
+}
+function nearestGray(v){const c=v*Math.sqrt(10),n=c < -2?'00':c<0?'01':c<2?'11':'10';return [...n].map(Number)}
+function decision(y,mode){if(mode==='ASK')return [y.i>Math.SQRT1_2?1:0];if(mode==='BPSK')return [y.i<0?1:0];if(mode==='FSK')return [y.q>y.i?1:0];if(mode==='QPSK')return [y.i<0?1:0,y.q<0?1:0];return [...nearestGray(y.i),...nearestGray(y.q)]}
+function symbolsFor(mode,rawBits){const k=bp(mode);let input=rawBits.replace(/[^01]/g,'').slice(0,96)||'1011010011100101';const pads=(k-(input.length%k))%k;const full=input+'0'.repeat(pads);const s=[];for(let p=0;p<full.length;p+=k)s.push(symbolFrom([...full.slice(p,p+k)],mode));return {symbols:s,bits:input,pads: pads,fullBits:full};}
+function receive(symbol,mode,sigma,random){return {i:symbol.i+sigma*gauss(random),q:symbol.q+sigma*gauss(random)};}
+function sigmaFor(mode){const g=Math.pow(10,state.ebn0/10), k=bp(mode);return Math.sqrt(1/(2*k*g));}
+function allIdealPoints(mode){const k=bp(mode);let arr=[];for(let i=0;i<2**k;i++)arr.push(symbolFrom([...i.toString(2).padStart(k,'0')],mode));return arr;}
+function simulate(){const mode=state.mode,k=bp(mode),random=rng(state.seed), sigma=sigmaFor(mode),data=symbolsFor(mode,state.bits);
+ const decoded=[],samples=[],len=15000;let errors=0;const all=allIdealPoints(mode);
+ for(let i=0;i<len;i++){const s=all[Math.floor(random()*all.length)],y=receive(s,mode,sigma,random),bits=decision(y,mode);if(i<480)samples.push({i:y.i,q:y.q,origin:s});for(let j=0;j<k;j++)if(bits[j]!==s.bits[j])errors++;}
+ let displayErr=0;for(const s of data.symbols){const y=receive(s,mode,sigma,random),b=decision(y,mode);decoded.push(...b);}
+ for(let i=0;i<data.bits.length;i++)if(decoded[i]!==Number(data.bits[i]))displayErr++;
+ return {...data,decoded,errors,BER:errors/(len*k),sampleCount:len*k,samples,displayErr};
+}
+function fftRadix(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]];}}for(let len=2;len<=n;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);for(let p=0;p<n;p+=len){let ar=1,ai=0;for(let j=0;j<len/2;j++){const u=p+j,v=u+len/2,tr=re[v]*ar-im[v]*ai,ti=re[v]*ai+im[v]*ar;re[v]=re[u]-tr;im[v]=im[u]-ti;re[u]+=tr;im[u]+=ti;const t=ar*wr-ai*wi;ai=ar*wi+ai*wr;ar=t;}}}}
+function fftSpectrum(mode){const rs=state.bitRate*1000/bp(mode),fs=rs*64,fc=state.cycles*rs,n=2048,blocks=8,psd=new Float64Array(n/2+1),random=rng(11337),k=bp(mode); // Long pseudo-random symbol sequence for Welch-averaged FFT.
+ const packets=[];for(let j=0;j<Math.ceil((n*blocks)/64)+2;j++){const bb=[];for(let c=0;c<k;c++)bb.push(random()>.5?'1':'0');packets.push(symbolFrom(bb,mode));}
+ let phase=0;const all=new Float64Array(n*blocks);for(let a=0;a<all.length;a++){const s=packets[Math.floor(a/64)],dt=1/fs;if(mode==='FSK'){const f=fc+(s.bits[0] ? .5:-.5)*rs;phase+=2*Math.PI*f*dt;all[a]=Math.cos(phase);}else{const p=2*Math.PI*fc*a*dt;all[a]=s.i*Math.cos(p)-s.q*Math.sin(p);}}
+ for(let block=0;block<blocks;block++){const re=new Float64Array(n),im=new Float64Array(n);for(let a=0;a<n;a++)re[a]=all[block*n+a]*(.5-.5*Math.cos(2*Math.PI*a/(n-1)));fftRadix(re,im);for(let b=0;b<=n/2;b++)psd[b]+=(re[b]*re[b]+im[b]*im[b])/blocks;}
+ const fLo=Math.max(0,fc-4*rs),fHi=Math.min(fs/2,fc+4*rs);let max=0;for(let j=0;j<psd.length;j++)if(psd[j]>max)max=psd[j];const spectrum=[];let total=0;for(let j=1;j<psd.length;j++)total+=psd[j];let mass=0,left=0,right=psd.length-1,lDone=false;for(let j=1;j<psd.length;j++){mass+=psd[j];if(!lDone&&mass>=.005*total){left=j;lDone=true;}if(mass>=.995*total){right=j;break;}}
+ const occup=(right-left)*fs/n;for(let j=0;j<psd.length;j++){const f=j*fs/n;if(f>=fLo && f<=fHi)spectrum.push({f,db:10*Math.log10(Math.max(psd[j]/(max||1),1e-10))});}
+ return {points:spectrum,fc,rs,fs,fLo,fHi,occup};}
+function prepareCanvas(canvas){const rect=canvas.getBoundingClientRect(),w=Math.max(250,Math.floor(rect.width)),h=Math.floor(rect.height),dpr=Math.min(2,devicePixelRatio||1);canvas.width=w*dpr;canvas.height=h*dpr;const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h};}
+function frame(ctx,w,h,{l=50,r=17,t=16,b=37}={}){const p={l,r,t,b,x:l,y:t,w:w-l-r,h:h-t-b};ctx.fillStyle=palette.bg;ctx.fillRect(0,0,w,h);ctx.font='11px system-ui';ctx.lineWidth=1;return p;}
+function text(ctx,s,x,y,color=palette.ink,align='left',font='11px system-ui'){ctx.fillStyle=color;ctx.textAlign=align;ctx.font=font;ctx.fillText(s,x,y);}
+function grid(ctx,p,xSteps,ySteps){ctx.strokeStyle=palette.grid;ctx.lineWidth=1;for(let i=0;i<=xSteps;i++){const x=p.x+p.w*i/xSteps;ctx.beginPath();ctx.moveTo(x,p.y);ctx.lineTo(x,p.y+p.h);ctx.stroke()}for(let i=0;i<=ySteps;i++){const y=p.y+p.h*i/ySteps;ctx.beginPath();ctx.moveTo(p.x,y);ctx.lineTo(p.x+p.w,y);ctx.stroke()}}
+// Labels describe the physical state represented by each binary symbol.
+// FSK: 0 uses the lower frequency fc0; 1 uses the higher frequency fc1.
+// BPSK: 0 uses +cos (0°); 1 uses -cos (180°).
+function waveSymbolLabel(symbol,mode){
+ if(mode==='FSK')return symbol.bits[0] ? 'fc1' : 'fc0';
+ if(mode==='BPSK')return symbol.bits[0] ? '180°' : '0°';
+ return symbol.bits.join('');
+}
+function drawWave(symbols,phaseTick=0){const {ctx,w,h}=prepareCanvas($('waveCanvas'));const p=frame(ctx,w,h,{l:50,r:15,t:31,b:37});grid(ctx,p,6,4);const mode=state.mode,k=bp(mode),rs=state.bitRate*1000/k,fc=rs*state.cycles,count=Math.min(10,symbols.length),period=count/rs,N=1800,noiseRandom=rng(state.seed^0x771127),SNR=Math.pow(10,state.ebn0/10),sigmaRF=.40/Math.sqrt(Math.max(.15,SNR));const signal=[];let ph=0;let maxAmplitude=mode==='ASK'?1.65:mode==='16QAM'?1.6:1.45;
+ for(let j=0;j<N;j++){const t=period*j/(N-1),sidx=Math.min(count-1,Math.floor(t*rs)),s=symbols[sidx],A=0;let ideal;if(mode==='FSK'){const f=fc+rs*(s.bits[0] ? 0.5 : -0.5);ph+=2*Math.PI*f*period/(N-1);ideal=Math.cos(ph)}else{const carrier=2*Math.PI*fc*t;ideal=s.i*Math.cos(carrier)-s.q*Math.sin(carrier)}signal.push({t,ideal,noisy:ideal+sigmaRF*gauss(noiseRandom)});}
+ const tx=x=>p.x+p.w*x/period,ty=v=>p.y+p.h*(.5-v/(2*maxAmplitude));
+ ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeStyle='#6986a8';ctx.beginPath();ctx.moveTo(p.x,ty(0));ctx.lineTo(p.x+p.w,ty(0));ctx.stroke();ctx.setLineDash([]);
+ for(let s=0;s<count;s++){const x=tx(s/rs),sym=symbols[s];if(s%2===0){ctx.fillStyle='#8ba1e80a';ctx.fillRect(x,p.y,p.w/count,p.h);}ctx.strokeStyle='#4d6282';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x,p.y);ctx.lineTo(x,p.y+p.h);ctx.stroke();ctx.setLineDash([]);text(ctx,waveSymbolLabel(sym,mode),x+p.w/count/2,p.y+12,'#c0d2ee','center','11px ui-monospace,monospace')}
+ function series(field,color,alpha,width){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();for(let j=0;j<signal.length;j++){const x=tx(signal[j].t),y=ty(signal[j][field]);j?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();ctx.restore()}
+ if(state.showNoise)series('noisy',palette.violet,.5,1.1);series('ideal',palette.cyan,1,1.5);
+ const x=tx((phaseTick%1)*period);ctx.strokeStyle=palette.gold;ctx.globalAlpha=.8;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,p.y);ctx.lineTo(x,p.y+p.h);ctx.stroke();ctx.globalAlpha=1;
+ for(let i=0;i<=4;i++){const t=period*i/4*1e6;text(ctx,round(t,1),tx(period*i/4),p.y+p.h+16,palette.ink,'center')};text(ctx,'Time (µs)',p.x+p.w/2,h-6,palette.ink,'center');text(ctx,'+1',10,ty(1)+4);text(ctx,'0',25,ty(0)+4);text(ctx,'−1',10,ty(-1)+4);text(ctx,`${count} symbols shown`,p.x+5,p.y-13,palette.ink);return count;}
+function drawSpectrum(spectrum){const {ctx,w,h}=prepareCanvas($('spectrumCanvas'));const p=frame(ctx,w,h,{l:50,r:14,t:14,b:37}),{fLo,fHi,points,fc,rs}=spectrum;grid(ctx,p,5,5);const xp=f=>p.x+p.w*(f-fLo)/(fHi-fLo),yp=db=>p.y+p.h*(-Math.max(-65,Math.min(0,db))/65);for(let d=0;d<=5;d++)text(ctx,`${-13*d}`,p.x-8,p.y+p.h*d/5+4,palette.ink,'right');text(ctx,'dB',12,13,palette.ink);let grad=ctx.createLinearGradient(0,p.y,0,p.y+p.h);grad.addColorStop(0,'#4de0f18a');grad.addColorStop(1,'#4de0f106');ctx.beginPath();points.forEach((v,i)=>i?ctx.lineTo(xp(v.f),yp(v.db)):ctx.moveTo(xp(v.f),yp(v.db)));if(points.length){ctx.lineTo(xp(points[points.length-1].f),p.y+p.h);ctx.lineTo(xp(points[0].f),p.y+p.h);ctx.closePath();ctx.fillStyle=grad;ctx.fill()}ctx.strokeStyle=palette.cyan;ctx.lineWidth=1.5;ctx.beginPath();points.forEach((v,i)=>i?ctx.lineTo(xp(v.f),yp(v.db)):ctx.moveTo(xp(v.f),yp(v.db)));ctx.stroke();
+ function refLine(f,color,label){if(f<=fLo||f>=fHi)return;ctx.strokeStyle=color;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xp(f),p.y);ctx.lineTo(xp(f),p.y+p.h);ctx.stroke();ctx.setLineDash([]);text(ctx,label,xp(f)+4,p.y+13,color)}
+ if(state.showNull && state.mode!=='FSK'){refLine(fc-rs,palette.orange,'−Rs');refLine(fc+rs,palette.orange,'+Rs')}
+ refLine(fc,palette.violet,'fc');if(state.mode==='FSK'){refLine(fc-rs/2,palette.gold,'fc0');refLine(fc+rs/2,palette.gold,'fc1')}
+ for(let i=0;i<=5;i++){const f=fLo+(fHi-fLo)*i/5;text(ctx,round(f/1000,0),xp(f),p.y+p.h+15,palette.ink,'center')};text(ctx,'Frequency (kHz)',p.x+p.w/2,h-6,palette.ink,'center');}
+function drawConst(samples){const mode=state.mode,{ctx,w,h}=prepareCanvas($('constCanvas'));const p=frame(ctx,w,h,{l:46,r:18,t:14,b:34}),ax=Math.min(p.w,p.h),lim=(mode==='ASK'?2.4:mode==='16QAM'?1.9:1.9),x0=p.x+p.w/2,y0=p.y+p.h/2,sc=ax/(2*lim);grid(ctx,p,6,6);ctx.strokeStyle='#65829b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,y0);ctx.lineTo(p.x+p.w,y0);ctx.moveTo(x0,p.y);ctx.lineTo(x0,p.y+p.h);ctx.stroke();const x=v=>x0+sc*v,y=v=>y0-sc*v;const ref=allIdealPoints(mode);ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();for(const s of samples){ctx.fillStyle=palette.cyan+'5c';ctx.beginPath();ctx.arc(x(s.i),y(s.q),1.6,0,Math.PI*2);ctx.fill()}
+ if(state.showIdeal){for(const s of ref){ctx.strokeStyle=palette.orange;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x(s.i),y(s.q),6,0,2*Math.PI);ctx.stroke();ctx.fillStyle=palette.orange;ctx.beginPath();ctx.arc(x(s.i),y(s.q),2.1,0,2*Math.PI);ctx.fill();}}
+ ctx.restore();if(mode==='FSK'){text(ctx,'Low-frequency correlator',p.x+p.w/2,h-4,palette.ink,'center');text(ctx,'High-frequency',p.x+2,p.y+11,palette.ink);$('constBadge').textContent='Correlation';}else{text(ctx,'In-phase (I)',p.x+p.w/2,h-4,palette.ink,'center');text(ctx,'Quadrature (Q)',p.x+4,p.y+11,palette.ink);$('constBadge').textContent='I / Q'}text(ctx,'0',x0+5,y0+11,palette.ink);}
+function drawBER(){const {ctx,w,h}=prepareCanvas($('berCanvas'));const p=frame(ctx,w,h,{l:57,r:16,t:16,b:38});const db0=-4,db1=22,lo=-6,hi=0,xp=db=>p.x+p.w*(db-db0)/(db1-db0),yp=ber=>p.y+p.h*(Math.max(lo,Math.min(hi,Math.log10(Math.max(1e-12,ber))))-hi)/(lo-hi);
+ for(let a=0;a<=6;a++){const y=p.y+p.h*a/6;ctx.strokeStyle=palette.grid;ctx.beginPath();ctx.moveTo(p.x,y);ctx.lineTo(p.x+p.w,y);ctx.stroke();text(ctx,a===0?'1':`1e−${a}`,p.x-8,y+4,palette.ink,'right')}
+ for(let a=0;a<=6;a++){const db=db0+(db1-db0)*a/6;const x=xp(db);ctx.strokeStyle=palette.grid;ctx.beginPath();ctx.moveTo(x,p.y);ctx.lineTo(x,p.y+p.h);ctx.stroke();text(ctx,round(db,0),x,p.y+p.h+15,palette.ink,'center')}
+ const types=[{name:'ASK / FSK',mode:'ASK',color:palette.orange},{name:'BPSK / QPSK',mode:'BPSK',color:palette.cyan},{name:'16-QAM',mode:'16QAM',color:palette.violet}];for(const q of types){ctx.lineWidth=q.mode===state.mode|| (q.mode==='BPSK'&&state.mode==='QPSK')||(q.mode==='ASK'&&state.mode==='FSK')?2.8:1.4;ctx.globalAlpha=ctx.lineWidth>2?1:.68;ctx.strokeStyle=q.color;ctx.beginPath();for(let i=0;i<100;i++){let db=db0+(db1-db0)*i/99;const x=xp(db),y=yp(theor(q.mode,db));i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();ctx.globalAlpha=1}
+ let pt=theor(state.mode,state.ebn0);ctx.fillStyle=palette.red;ctx.beginPath();ctx.arc(xp(state.ebn0),yp(pt),5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=1.3;ctx.stroke();text(ctx,'Eᵦ/N₀ (dB)',p.x+p.w/2,h-6,palette.ink,'center');let x=p.x+7;for(let v of types){ctx.fillStyle=v.color;ctx.fillRect(x,p.y+7,7,7);text(ctx,v.name,x+11,p.y+14,palette.ink);x+=v.name.length*5.6+28}}
+function makeBits(el,bits,errorBits,max=60){el.innerHTML='';for(let i=0;i<Math.min(bits.length,max);i++){const v=Number(bits[i]),div=document.createElement('span');div.className='bit-cell'+(errorBits&&errorBits[i]!==v?' err':'');div.textContent=v;div.title=`Bit ${i+1}`+(errorBits?` → ${errorBits[i]}`:'');el.append(div);}if(bits.length>max){const s=document.createElement('span');s.textContent=`+ ${bits.length-max} more`;s.className='tiny-text';el.append(s)}}
+let latest=null,ts=0,queued=false,lastSpectrum=null,lastSim=null;
+function render(recalc=true){if(recalc||!latest){const sim=simulate(),spectrum=fftSpectrum(state.mode);latest={sim,spectrum};}const {sim,spectrum}=latest,k=bp(state.mode),rs=state.bitRate*1000/k,fc=state.cycles*rs,cfg=configs[state.mode];lastSpectrum=spectrum;lastSim=sim;
+ $('rateVal').textContent=`${state.bitRate} kb/s`;$('carrierVal').textContent=`${state.cycles} cycles`;$('snrVal').textContent=`${state.ebn0} dB`;
+ $('mName').textContent=state.mode;$('mScheme').textContent=cfg.label;$('mBaud').textContent=`${round(rs/1000,rs/1000<20?1:0)} kBd`;$('mSymbol').textContent=`${round(1e6/rs,2)} µs/symbol`;$('mFc').textContent=`${round(fc/1000,0)} kHz`;$('mCarrierDetail').textContent=`${state.cycles} cycles/symbol`;$('mBW').textContent=`${round((state.mode==='FSK'?3:2)*rs/1000,1)} kHz`;$('mBer').textContent=fmtBER(sim.BER);$('mBerSub').textContent=`${sim.errors.toLocaleString()} / ${sim.sampleCount.toLocaleString()} bits`;
+ $('modeDescription').textContent=cfg.description;$('modeFormula').textContent=cfg.formula;$('modeNote').textContent=cfg.note;$('detailK').textContent=k;$('detailTs').textContent=`${round(1e6/rs,2)} μs`;$('detailNull').textContent=state.mode==='FSK'?`2 × Rs + Δf ≈ ${round((2*rs+rs)/1000,0)} kHz`:`2 × Rs ≈ ${round(2*rs/1000,0)} kHz`;
+ $('theoryBer').textContent=fmtBER(theor(state.mode,state.ebn0));$('messageErrors').textContent=`${sim.displayErr} / ${sim.bits.length} bits`;$('bitNotice').textContent=`${sim.bits.length} input bits`+(sim.pads?` • ${sim.pads} zero bit${sim.pads>1?'s':''} padded for complete symbols`:' • no padding needed');$('bitInput').value=sim.bits;
+ $('waveSubtitle').textContent=state.mode==='FSK'?'FSK symbol labels: 0 → fc0 · 1 → fc1':state.mode==='BPSK'?'BPSK symbol labels: 0 → 0° · 1 → 180°':'Time-domain carrier · symbol boundaries';
+ $('waveFoot').textContent=state.mode==='FSK'?`FSK: 0 → fc0 = ${round((fc-rs/2)/1000,1)} kHz; 1 → fc1 = ${round((fc+rs/2)/1000,1)} kHz. Continuous-phase waveform.`:state.mode==='BPSK'?'BPSK: bit 0 → 0° phase (+cos); bit 1 → 180° phase (−cos).':state.mode==='ASK'?'OOK: carrier present for 1, absent for 0.':state.mode==='16QAM'?'Amplitude and phase can change at symbol boundaries.':'Carrier amplitude is constant; phase carries information.';
+ $('specFoot').textContent=`Carrier ≈ ${round(fc/1000,0)} kHz · FFT-estimated 99% occupied BW ≈ ${round(spectrum.occup/1000,0)} kHz. ${state.mode==='FSK'?'Two FSK tones; not a rectangular-pulse null model.':'Dashed ±Rs are ideal rectangular-pulse null guides.'}`;
+ $('constTitle').textContent=state.mode==='FSK'?'03 / FSK receiver states':'03 / Constellation & receiver';$('constSub').textContent=state.mode==='FSK'?'Two orthogonal correlator outputs, plus Gaussian noise':'Ideal symbols and noisy coherent receiver samples';$('constFoot').textContent=state.mode==='FSK'?'Scatter shows frequency-detector outputs, not I/Q coordinates.':'Orange circles = ideal symbols; cyan dots = noisy samples.';
+ makeBits($('txBits'),[...sim.bits].map(Number));
+ $('rxBits').innerHTML='';for(let i=0;i<Math.min(60,sim.bits.length);i++){const s=document.createElement('span');s.className='bit-cell'+(sim.decoded[i]!==Number(sim.bits[i])?' err':'');s.textContent=sim.decoded[i];s.title=`Received bit ${i+1}`;$('rxBits').append(s)}
+ drawWave(sim.symbols,ts);drawSpectrum(spectrum);drawConst(sim.samples);drawBER();document.querySelectorAll('.mod-btn').forEach(el=>{const active=el.dataset.mode===state.mode;el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active));});}
+function requestRender(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render(true)})}
+$('rate').addEventListener('input',e=>{state.bitRate=Number(e.target.value);requestRender()});$('carrier').addEventListener('input',e=>{state.cycles=Number(e.target.value);requestRender()});$('snr').addEventListener('input',e=>{state.ebn0=Number(e.target.value);requestRender()});
+$('modButtons').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;state.mode=b.dataset.mode;requestRender()});
+$('bitInput').addEventListener('input',e=>{const valid=e.target.value.replace(/[^01]/g,'').slice(0,96);state.bits=valid||'10110010';requestRender()});
+$('randomBtn').addEventListener('click',()=>{const r=rng(Date.now()%4294967296);state.bits=Array.from({length:32},()=>r()<.5?'0':'1').join('');state.seed=(state.seed+37)>>>0;requestRender()});
+$('noiseBtn').addEventListener('click',()=>{state.seed=(state.seed+0x1234567)>>>0;requestRender()});
+['Noise','Ideal','Null'].forEach(x=>{$('show'+x).addEventListener('change',e=>{state['show'+x]=e.target.checked;render(false)})});
+$('playBtn').addEventListener('click',()=>{state.playing=!state.playing;$('playBtn').textContent=state.playing?'⏸ Pause sweep':'▶ Play sweep'});
+const challenges={noise:{mode:'QPSK',rate:120,snr:-2,cycles:6,title:'Experiment 01 / What happens when noise grows?',text:'At −2 dB Eb/N0 the four QPSK decision regions overlap. Raise Eb/N0 from −2 to 12 dB and watch the received points tighten and measured BER decrease.'},rate:{mode:'BPSK',rate:200,snr:14,cycles:6,title:'Experiment 02 / Is bandwidth related to bit rate?',text:'Compare the FFT with 100 kb/s and 200 kb/s BPSK. With rectangular pulses, doubling symbol rate doubles the theoretical main-lobe null-to-null bandwidth.'},qam:{mode:'16QAM',rate:120,snr:7,cycles:6,title:'Experiment 03 / More bits per symbol = more resilience?',text:'Compare QPSK with 16-QAM at the same 120 kb/s and 7 dB Eb/N0. 16-QAM needs fewer symbols per second but its points are closer together in signal space.'}};
+document.querySelectorAll('[data-preset]').forEach(el=>el.addEventListener('click',()=>{const a=challenges[el.dataset.preset];state.mode=a.mode;state.bitRate=a.rate;state.ebn0=a.snr;state.cycles=a.cycles;$('rate').value=a.rate;$('snr').value=a.snr;$('carrier').value=a.cycles;$('experimentTitle').textContent=a.title;$('experimentText').textContent=a.text;requestRender();document.getElementById('visualizations').scrollIntoView({block:'start',behavior:'smooth'});}))
+$('exportBtn').addEventListener('click',()=>{const canvases=['waveCanvas','spectrumCanvas','constCanvas','berCanvas'];const output=document.createElement('canvas');output.width=1450;output.height=1110;const c=output.getContext('2d');c.fillStyle='#0a1020';c.fillRect(0,0,output.width,output.height);c.fillStyle='#f2f6ff';c.font='bold 31px system-ui';c.fillText(`SignalScope Studio — ${state.mode} experiment`,45,57);c.fillStyle='#aabbd1';c.font='17px system-ui';c.fillText(`Bit rate ${state.bitRate} kb/s    •    Carrier ${Math.round(state.cycles*state.bitRate/bp(state.mode))} kHz    •    Eb/N0 ${state.ebn0} dB    •    BER ${fmtBER(latest.sim.BER)}`,45,91);canvases.forEach((id,i)=>{const x=35+(i%2)*710,y=132+Math.floor(i/2)*465;c.fillStyle='#111b30';c.fillRect(x,y,690,446);c.fillStyle='#ecf6ff';c.font='bold 21px system-ui';c.fillText(['RF waveform','Frequency spectrum','Receiver constellation / states','BER vs Eb/N0'][i],x+22,y+32);c.drawImage($(id),x+15,y+48,660,365)});c.fillStyle='#a0b2c9';c.font='14px system-ui';c.fillText('Educational AWGN model • Plots generated locally • SignalScope Studio',45,1090);const link=document.createElement('a');link.href=output.toDataURL('image/png');link.download=`SignalScope_${state.mode}_plots.png`;link.click();});
+let lastAnim=0;function animate(now){if(state.playing&&latest&&now-lastAnim>95){ts=(ts+.006)%1;drawWave(latest.sim.symbols,ts);lastAnim=now;}requestAnimationFrame(animate)}
+let resizeRequest;window.addEventListener('resize',()=>{clearTimeout(resizeRequest);resizeRequest=setTimeout(()=>render(false),150)});
+render(true);requestAnimationFrame(animate);
+window.__signalScopeTest={theor,symbolsFor,decision,simulate,fftSpectrum,state,configs,erfc};
+})();
+</script>
+</body>
+</html>
